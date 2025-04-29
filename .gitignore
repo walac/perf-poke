@@ -1,0 +1,4 @@
+perf_poke
+perf_poke.bpf.o
+perf_poke.skel.h
+.gdb_history
