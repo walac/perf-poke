@@ -19,7 +19,7 @@ static int handle_rb_event(void *ctx, void *data, size_t data_sz)
 
 int main(int argc, char **argv)
 {
-    int perf_pid, threshold, ret, retval = 0;
+    int perf_pid, threshold, over = 0, ret, retval = 0;
     struct perf_poke_bpf *bpf;
     struct ring_buffer *rb;
 
@@ -86,7 +86,10 @@ int main(int argc, char **argv)
 
         /* Poke perf */
         kill(perf_pid, SIGUSR2);
+        ++over;
     }
+
+    printf("Threshold exceeded %d times\n", over);
 
 rb_free:
     ring_buffer__free(rb);
