@@ -4,7 +4,7 @@
 [ -z ${DURATION+x} ] && { echo "DURATION not be set" >&2; exit 1; }
 
 chrt -f 10 taskset -c 0 perf $PERF_ARGS -- sleep $DURATION & PERF_PID=$!
-chrt -f 10 taskset -c 0 ./perf_poke $PERF_PID $THRESHOLD & POKE_PID=$!
+chrt -f 5 taskset -c 0 ./perf_poke $PERF_PID $THRESHOLD & POKE_PID=$!
 
 wait $PERF_PID
 kill -INT $POKE_PID
