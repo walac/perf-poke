@@ -89,7 +89,7 @@ int main(int argc, char **argv)
         ++over;
     }
 
-    printf("Threshold exceeded %d times\n", over);
+    printf("perf_poke: threshold exceeded %d times\n", over);
 
 rb_free:
     ring_buffer__free(rb);
