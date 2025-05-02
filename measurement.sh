@@ -30,7 +30,7 @@ echo
 # Collect kcore after perf_poke's BPF program is JITed
 sleep 5
 echo "Collecting kcore..."
-perf record --no-samples --kcore true || { echo "kcore collect failed" >&2; exit 1; }
+perf record --no-samples --kcore true || { echo "kcore collect failed" >&2; kill -INT $POKE_PID; kill -INT $PERF_PID; exit 1; }
 
 # Wait on measurement to end
 echo "...waiting on measurement to end"
