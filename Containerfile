@@ -1,6 +1,6 @@
 FROM fedora:41
 ARG BUILDDEPS="make gcc libbpf-devel bpftool clang"
-ARG DEPS="libbpf perf ps"
+ARG DEPS="libbpf perf ps libcgroup-tools"
 ARG FUNC="tick_nohz_handler"
 
 RUN dnf install -y $DEPS
