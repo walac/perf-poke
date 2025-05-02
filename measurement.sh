@@ -31,3 +31,5 @@ ps -p $POKE_PID > /dev/null && wait $POKE_PID
 echo "perf_poke stopped"
 echo
 echo "Please collect perf data from container if running inside one"
+echo "After the data is collected, this script can be stopped"
+sleep infinity
