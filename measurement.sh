@@ -29,8 +29,10 @@ echo
 
 # Collect kcore after perf_poke's BPF program is JITed
 sleep 5
-perf record --no-samples --kcore true
+echo "Collecting kcore..."
+perf record --no-samples --kcore true || { echo "kcore collect failed" >&2; exit 1; }
 
+# Wait on measurement to end
 echo "...waiting on measurement to end"
 ps -p $PERF_PID > /dev/null && wait $PERF_PID
 chmod -R a+r perf.data*
@@ -39,12 +41,14 @@ echo "Measurement ended, stopping perf_poke..."
 kill -INT $POKE_PID
 ps -p $POKE_PID > /dev/null && wait $POKE_PID
 
+# Collect data
 echo "perf_poke stopped, creating an archive from perf data"
 mv perf.data.2 perf.data/data
 tar -czf perf_data.tar.gz perf.data/
 
+# Wait for data to be collected
 echo
 echo "perf data is collected as perf_data.tar.gz"
 echo "Please collect perf data from container if running inside one"
 echo "After the data is collected, this script can be stopped"
-sleep infinity
+exec sleep infinity
