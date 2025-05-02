@@ -24,10 +24,12 @@ echo
 
 echo "...waiting on measurement to end"
 ps -p $PERF_PID > /dev/null && wait $PERF_PID
+chmod -R a+r perf.data*
 echo
 echo "Measurement ended, stopping perf_poke..."
 kill -INT $POKE_PID
 ps -p $POKE_PID > /dev/null && wait $POKE_PID
+
 echo "perf_poke stopped"
 echo
 echo "Please collect perf data from container if running inside one"
