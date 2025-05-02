@@ -15,7 +15,7 @@ echo "Starting perf with arguments: $PERF_ARGS"
 chrt -f 10 taskset -c 0 perf $PERF_ARGS -- sleep $DURATION & PERF_PID=$!
 echo "perf running, PID $PERF_PID"
 sleep 5
-ps -p $PERF_PID || { echo "perf not running, aborting" >&2; exit 1; }
+ps -p $PERF_PID > /dev/null || { echo "perf not running, aborting" >&2; exit 1; }
 
 echo "Starting perf_poke with perf PID: $PERF_PID and threshold: $THRESHOLD ns"
 chrt -f 5 taskset -c 0 ./perf_poke $PERF_PID $THRESHOLD & POKE_PID=$!
