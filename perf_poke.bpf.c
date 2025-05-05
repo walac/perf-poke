@@ -13,7 +13,7 @@ struct {
 const volatile unsigned long long threshold = 10000;
 unsigned long long entry_time = 0;
 
-SEC("fentry/tick_nohz_handler")
+SEC("kprobe/tick_nohz_handler")
 int BPF_PROG(tick_entry, struct hrtimer *timer)
 {
     if (bpf_get_smp_processor_id() != 0)
@@ -23,7 +23,7 @@ int BPF_PROG(tick_entry, struct hrtimer *timer)
     return 0;
 }
 
-SEC("fexit/tick_nohz_handler")
+SEC("kretprobe/tick_nohz_handler")
 int BPF_PROG(tick_exit, struct hrtimer *timer)
 {
     unsigned long long exit_time;
