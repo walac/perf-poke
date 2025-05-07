@@ -1,7 +1,7 @@
 #!/bin/sh
 [ -z ${PERF_ARGS+x} ] && { echo "PERF_ARGS not set" >&2; exit 1; }
-[ -z ${THRESHOLD+x} ] && { echo "THRESHOLD not be set" >&2; exit 1; }
-[ -z ${DURATION+x} ] && { echo "DURATION not be set" >&2; exit 1; }
+[ -z ${THRESHOLD+x} ] && { echo "THRESHOLD not set" >&2; exit 1; }
+[ -z ${DURATION+x} ] && { echo "DURATION not set" >&2; exit 1; }
 
 # Print useful information
 echo "RHEL-86425 perf-poke measurement, running at $(date)"
@@ -12,14 +12,17 @@ echo "/proc/cmdline:"
 cat /proc/cmdline
 echo
 
+# Disable taskset if requested. This is useful on OCP
+[ "$DISABLE_TASKSET" == "1" ] && echo "Running with taskset disabled" || TASKSET="taskset -c 0"
+
 # Start perf first, perf_poke needs its PID
 echo "Starting perf with arguments: $PERF_ARGS"
-chrt -f 10 taskset -c 0 perf $PERF_ARGS -o perf.data -- sleep $DURATION & PERF_PID=$!
+chrt -f 10 $TASKSET perf $PERF_ARGS -o perf.data -- sleep $DURATION & PERF_PID=$!
 echo "perf running, PID $PERF_PID"
 
 # Start perf_poke
 echo "Starting perf_poke with perf PID: $PERF_PID and threshold: $THRESHOLD ns"
-chrt -f 5 taskset -c 0 ./perf_poke $PERF_PID $THRESHOLD & POKE_PID=$!
+chrt -f 5 $TASKSET ./perf_poke $PERF_PID $THRESHOLD & POKE_PID=$!
 echo "perf_poke running, PID $POKE_PID"
 echo
 
