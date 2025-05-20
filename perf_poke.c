@@ -19,27 +19,19 @@ static int handle_rb_event(void *ctx, void *data, size_t data_sz)
 
 int main(int argc, char **argv)
 {
-    int perf_pid, threshold, over = 0, ret, retval = 0;
+    int perf_pid, threshold, cpu, over = 0, ret, retval = 0;
     struct perf_poke_bpf *bpf;
     struct ring_buffer *rb;
 
     /* Parse command line arguments */
-    if (argc != 3) {
-        printf("Usage: perf_poke PERF_PID THRESHOLD\n");
+    if (argc != 4) {
+        printf("Usage: perf_poke PERF_PID THRESHOLD CPU\n");
         return 1;
     }
 
     perf_pid = atoi(argv[1]);
-    if (perf_pid == 0) {
-        fprintf(stderr, "perf_poke: perf pid \"%s\" is not a valid number\n", argv[1]);
-        return 1;
-    }
-
     threshold = atoi(argv[2]);
-    if (threshold == 0) {
-        fprintf(stderr, "perf_poke: Threshold \"%s\" is not a valid number\n", argv[2]);
-        return 1;
-    }
+    cpu = atoi(argv[3]);
 
     /* Open BPF program */
     bpf = perf_poke_bpf__open();
@@ -51,6 +43,7 @@ int main(int argc, char **argv)
 
     /* Set up and load BPF program */
     bpf->rodata->threshold = threshold;
+    bpf->rodata->cpu = cpu;
     ret = perf_poke_bpf__load(bpf);
     if (ret) {
         fprintf(stderr, "perf_poke: BPF program load failed\n");

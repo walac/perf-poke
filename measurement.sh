@@ -2,6 +2,7 @@
 [ -z ${PERF_ARGS+x} ] && { echo "PERF_ARGS not set" >&2; exit 1; }
 [ -z ${THRESHOLD+x} ] && { echo "THRESHOLD not set" >&2; exit 1; }
 [ -z ${DURATION+x} ] && { echo "DURATION not set" >&2; exit 1; }
+[ -z ${CPU+x} ] && { echo "CPU not set" >&2; exit 1; }
 
 # Print useful information
 echo "RHEL-86425 perf-poke measurement, running at $(date)"
@@ -22,7 +23,7 @@ echo "perf running, PID $PERF_PID"
 
 # Start perf_poke
 echo "Starting perf_poke with perf PID: $PERF_PID and threshold: $THRESHOLD ns"
-chrt -f 5 $TASKSET ./perf_poke $PERF_PID $THRESHOLD & POKE_PID=$!
+chrt -f 5 $TASKSET ./perf_poke $PERF_PID $THRESHOLD $CPU & POKE_PID=$!
 echo "perf_poke running, PID $POKE_PID"
 echo
 

@@ -11,12 +11,13 @@ struct {
 } perf_wake_up SEC(".maps");
 
 const volatile unsigned long long threshold = 10000;
+const volatile int cpu = 0;
 unsigned long long entry_time = 0;
 
 SEC("kprobe/tick_nohz_handler")
 int BPF_PROG(tick_entry, struct hrtimer *timer)
 {
-    if (bpf_get_smp_processor_id() != 0)
+    if (bpf_get_smp_processor_id() != cpu)
         return 0;
 
     entry_time = bpf_ktime_get_ns();
@@ -29,7 +30,7 @@ int BPF_PROG(tick_exit, struct hrtimer *timer)
     unsigned long long exit_time;
     int value = 0;
 
-    if (bpf_get_smp_processor_id() != 0)
+    if (bpf_get_smp_processor_id() != cpu)
         return 0;
 
     if (!entry_time)
