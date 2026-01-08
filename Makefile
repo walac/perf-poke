@@ -7,7 +7,10 @@ perf_poke.bpf.o: perf_poke.bpf.c
 perf_poke.skel.h: perf_poke.bpf.o
 	bpftool gen skeleton perf_poke.bpf.o > perf_poke.skel.h
 
-.PHONY: clean
+image:
+	podman build -t docker.io/walac/perf-poke .
+
+.PHONY: clean image
 
 clean:
 	rm -f perf_poke perf_poke.bpf.o perf_poke.skel.h
