@@ -34,6 +34,7 @@ int main(int argc, char **argv)
     threshold = atoi(argv[2]);
     cpu = atoi(argv[3]);
     timerlat_irq = (void *) strtoul(argv[4], NULL, 0);
+    printf("timerlat_irq address = %p\n", timerlat_irq);
 
     /* Open BPF program */
     bpf = perf_poke_bpf__open();
