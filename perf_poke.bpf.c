@@ -9,13 +9,13 @@ typedef long long ktime_t;
 struct trace_event_raw_hrtimer_start {
     struct hrtimer *hrtimer;
     void *function;
-    long long expires;
+    ktime_t expires;
 } __attribute__((preserve_access_index));
 
 struct trace_event_raw_hrtimer_expire_entry {
     struct hrtimer *hrtimer;
     void *function;
-    long long now;
+    ktime_t now;
 } __attribute__((preserve_access_index));
 
 typedef void *poke_key_t;
@@ -33,15 +33,9 @@ struct {
     __uint(value_size, sizeof(poke_value_t));
 } entry_time SEC(".maps");
 
-struct {
-    __uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);
-    __uint(max_entries, 1);
-    __uint(key_size, sizeof(int));
-    __uint(value_size, sizeof(ktime_t));
-} now SEC(".maps");
-
 const volatile unsigned long long threshold = 10000;
 const volatile int cpu = 0;
+const volatile void *timerlat_irq = NULL;
 static volatile int threshold_hit = 0;
 
 static int handle_entry(const poke_key_t key, poke_value_t timestamp)
@@ -97,27 +91,18 @@ exit:
 SEC("tp/timer/hrtimer_start")
 int hrtimer_start(struct trace_event_raw_hrtimer_start *args)
 {
+    if (args->function != timerlat_irq)
+        return 0;
+
     return handle_entry(args->hrtimer, args->expires);
 }
 
 SEC("tp/timer/hrtimer_expire_entry")
 int hrtimer_expire_entry(struct trace_event_raw_hrtimer_expire_entry *args)
 {
-    int key = 0;
-
-    bpf_map_update_elem(&now, &key, &args->now, 0);
-    return 0;
-}
-
-SEC("kprobe/timerlat_irq")
-int BPF_PROG(timerlat_irq, struct hrtimer *hrtimer)
-{
-    const int key = 0;
-    ktime_t *exit_time;
-
-    exit_time = bpf_map_lookup_elem(&now, &key);
-    if (!exit_time || !*exit_time)
+    if (args->function != timerlat_irq)
         return 0;
 
-    return handle_exit(hrtimer, *exit_time);
+    return handle_exit(args->hrtimer, args->now);
 }
+
