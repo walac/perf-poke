@@ -28,20 +28,19 @@ struct {
 
 struct {
     __uint(type, BPF_MAP_TYPE_PERCPU_HASH);
-    __uint(max_entries, 10240);
+    __uint(max_entries, 64);
     __uint(key_size, sizeof(poke_key_t));
     __uint(value_size, sizeof(poke_value_t));
 } entry_time SEC(".maps");
 
 const volatile unsigned long long threshold = 10000;
 const volatile void *timerlat_irq = NULL;
+
+// volatile to avoid the compiler to optimize it to a single byte value
 static volatile int threshold_hit = 0;
 
-static int handle_entry(const poke_key_t key, poke_value_t timestamp)
+static inline int update_time_entry(const poke_key_t key, poke_value_t timestamp)
 {
-    if (!timestamp)
-        timestamp = bpf_ktime_get_ns();
-
     return bpf_map_update_elem(&entry_time, &key, &timestamp, 0);
 }
 
@@ -52,9 +51,6 @@ static int handle_exit(const poke_key_t key, poke_value_t exit_time)
 
     if (threshold_hit) /* avoid multiple triggers */
         return 0;
-
-    if (!exit_time)
-        exit_time = bpf_ktime_get_ns();
 
     pentry_time = (poke_value_t *) bpf_map_lookup_elem(&entry_time, &key);
     if (!pentry_time)
@@ -77,7 +73,7 @@ static int handle_exit(const poke_key_t key, poke_value_t exit_time)
 
 exit:
     timestamp = 0;
-    bpf_map_update_elem(&entry_time, &key, &timestamp, 0);
+    update_time_entry(key, 0);
     return 0;
 }
 
@@ -87,7 +83,7 @@ int hrtimer_start(struct trace_event_raw_hrtimer_start *args)
     if (args->function != timerlat_irq)
         return 0;
 
-    return handle_entry(args->hrtimer, args->expires);
+    return update_time_entry(args->hrtimer, args->expires);
 }
 
 SEC("tp/timer/hrtimer_expire_entry")
