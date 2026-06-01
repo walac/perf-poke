@@ -34,15 +34,11 @@ struct {
 } entry_time SEC(".maps");
 
 const volatile unsigned long long threshold = 10000;
-const volatile int cpu = 0;
 const volatile void *timerlat_irq = NULL;
 static volatile int threshold_hit = 0;
 
 static int handle_entry(const poke_key_t key, poke_value_t timestamp)
 {
-    if (cpu != bpf_get_smp_processor_id())
-        return 0;
-
     if (!timestamp)
         timestamp = bpf_ktime_get_ns();
 
@@ -55,9 +51,6 @@ static int handle_exit(const poke_key_t key, poke_value_t exit_time)
     int value = 0;
 
     if (threshold_hit) /* avoid multiple triggers */
-        return 0;
-
-    if (cpu != bpf_get_smp_processor_id())
         return 0;
 
     if (!exit_time)

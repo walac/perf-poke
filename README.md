@@ -7,7 +7,7 @@ debugging real-time latency problems in conjunction with `rtla timerlat`.
 ## How it Works
 
 perf-poke attaches a BPF program to monitor `hrtimer_expire_entry` events. When the latency
-exceeds a configured threshold on a specific CPU, it sends `SIGUSR2` to a running `perf record`
+exceeds a configured threshold, it sends `SIGUSR2` to a running `perf record`
 process, triggering a snapshot capture.
 
 ## Requirements
@@ -53,7 +53,7 @@ export PERF_ARGS="record -m 4G --cpu $CPU --no-switch-events --kcore -e intel_pt
 
 | Variable    | Description                                         |
 |-------------|-----------------------------------------------------|
-| `CPU`       | CPU core to monitor                                 |
+| `CPU`       | CPU core for `perf record` and `rtla timerlat`      |
 | `THRESHOLD` | Latency threshold in nanoseconds                    |
 | `DURATION`  | Measurement duration (e.g., `3h`, `30m`)            |
 | `PERF_ARGS` | Arguments passed to `perf record`                   |

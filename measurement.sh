@@ -25,7 +25,7 @@ echo "perf running, PID $PERF_PID"
 
 # Start perf_poke
 echo "Starting perf_poke with perf PID: $PERF_PID and threshold: $THRESHOLD ns"
-chrt -f 5 $TASKSET ./perf_poke $PERF_PID $THRESHOLD $CPU $TIMERLAT_IRQ & POKE_PID=$!
+chrt -f 5 $TASKSET ./perf_poke $PERF_PID $THRESHOLD $TIMERLAT_IRQ & POKE_PID=$!
 echo "perf_poke running, PID $POKE_PID"
 echo
 
