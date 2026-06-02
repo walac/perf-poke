@@ -6,9 +6,10 @@ debugging real-time latency problems in conjunction with `rtla timerlat`.
 
 ## How it Works
 
-perf-poke attaches a BPF program to monitor `hrtimer_expire_entry` events. When the latency
-exceeds a configured threshold, it sends `SIGUSR2` to a running `perf record`
-process, triggering a snapshot capture.
+perf-poke attaches a BPF program to monitor `hrtimer_start` and `hrtimer_expire_entry`
+tracepoints, filtering for the `timerlat_irq` and `hrtimer_wakeup` kernel callbacks. When
+the latency between timer start and expiry exceeds a configured threshold, it sends
+`SIGUSR2` to a running `perf record` process, triggering a snapshot capture.
 
 ## Requirements
 
@@ -64,6 +65,7 @@ In a separate terminal, set up and run rtla timerlat:
 
 ```bash
 export TIMERLAT_IRQ=$(awk '$3 == "timerlat_irq" { printf("0x%s", $1); }' /proc/kallsyms)
+export HRTIMER_WAKEUP=$(awk '$3 == "hrtimer_wakeup" { printf("0x%s", $1); }' /proc/kallsyms)
 export CPU=41
 export THRESHOLD=30
 export DURATION=3h
@@ -75,8 +77,8 @@ perf probe __sysvec_apic_timer_interrupt
 # Run timerlat
 rtla timerlat top --dma-latency 0 --aa-only $THRESHOLD -T 500 -i $THRESHOLD -p 200 -t \
     -c $CPU -H 0-2,36-38 -d $DURATION -P f:95 --deepest-idle-state 0 \
-    -e timer:hrtimer_expire_entry --filter "function == $TIMERLAT_IRQ" \
-    -e timer:hrtimer_start --filter "function == $TIMERLAT_IRQ" \
+    -e timer:hrtimer_expire_entry --filter "function == $TIMERLAT_IRQ || function == $HRTIMER_WAKEUP" \
+    -e timer:hrtimer_start --filter "function == $TIMERLAT_IRQ || function == $HRTIMER_WAKEUP" \
     -e probe
 ```
 

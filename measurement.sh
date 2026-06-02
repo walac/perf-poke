@@ -5,6 +5,7 @@
 [ -z ${CPU+x} ] && { echo "CPU not set" >&2; exit 1; }
 
 TIMERLAT_IRQ=$(awk '$3 == "timerlat_irq" { printf("0x%s", $1); }' /proc/kallsyms)
+HRTIMER_WAKEUP=$(awk '$3 == "hrtimer_wakeup" { printf("0x%s", $1); }' /proc/kallsyms)
 
 # Print useful information
 echo "RHEL-86425 perf-poke measurement, running at $(date)"
@@ -25,7 +26,7 @@ echo "perf running, PID $PERF_PID"
 
 # Start perf_poke
 echo "Starting perf_poke with perf PID: $PERF_PID and threshold: $THRESHOLD ns"
-chrt -f 5 $TASKSET ./perf_poke $PERF_PID $THRESHOLD $TIMERLAT_IRQ & POKE_PID=$!
+chrt -f 5 $TASKSET ./perf_poke $PERF_PID $THRESHOLD $TIMERLAT_IRQ $HRTIMER_WAKEUP & POKE_PID=$!
 echo "perf_poke running, PID $POKE_PID"
 echo
 

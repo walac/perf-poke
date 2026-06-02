@@ -1,6 +1,10 @@
 #include <linux/bpf.h>
 #include <bpf/bpf_tracing.h>
 
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))
+#endif
+
 char LICENSE[] SEC("license") = "GPL";
 
 struct hrtimer;
@@ -34,7 +38,20 @@ struct {
 } entry_time SEC(".maps");
 
 const volatile unsigned long long threshold = 10000;
-const volatile void *timerlat_irq = NULL;
+// rtla timerlat uses timerlat_irq, cyclictest uses hrtimer_wakeup
+const volatile void *timer_cbs[2];
+
+static int is_latency_timer_cb(const void *p)
+{
+    unsigned long i;
+
+    for (i = 0; i < ARRAY_SIZE(timer_cbs); ++i) {
+        if (p == timer_cbs[i])
+            return 1;
+    }
+
+    return 0;
+}
 
 // volatile to avoid the compiler to optimize it to a single byte value
 static volatile int threshold_hit = 0;
@@ -80,7 +97,7 @@ exit:
 SEC("tp/timer/hrtimer_start")
 int hrtimer_start(struct trace_event_raw_hrtimer_start *args)
 {
-    if (args->function != timerlat_irq)
+    if (!is_latency_timer_cb(args->function))
         return 0;
 
     return update_time_entry(args->hrtimer, args->expires);
@@ -89,7 +106,7 @@ int hrtimer_start(struct trace_event_raw_hrtimer_start *args)
 SEC("tp/timer/hrtimer_expire_entry")
 int hrtimer_expire_entry(struct trace_event_raw_hrtimer_expire_entry *args)
 {
-    if (args->function != timerlat_irq)
+    if (!is_latency_timer_cb(args->function))
         return 0;
 
     return handle_exit(args->hrtimer, args->now);
