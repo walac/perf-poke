@@ -22,6 +22,7 @@ echo
 # Start perf first, perf_poke needs its PID
 echo "Starting perf with arguments: $PERF_ARGS"
 chrt -f 10 $TASKSET perf $PERF_ARGS -o perf.data -- sleep $DURATION & PERF_PID=$!
+sleep 5
 echo "perf running, PID $PERF_PID"
 
 # Start perf_poke
